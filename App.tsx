@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { View, TextInput, StyleSheet,Text } from 'react-native';
-import { Camera, useCodeScanner,useCameraPermission,useCameraDevice } from 'react-native-vision-camera';
+import { View, TextInput, StyleSheet, Text, Alert } from 'react-native';
+import { Camera, useCodeScanner, useCameraPermission, useCameraDevice } from 'react-native-vision-camera';
 
 export default function App() {
   const { hasPermission, requestPermission } = useCameraPermission()
@@ -13,13 +13,25 @@ export default function App() {
     }
   }, [hasPermission, requestPermission]);
 
+  useEffect(() => {
+    if (hasPermission === false) {
+      Alert.alert(
+        "Permiso de cámara",
+        "Necesitamos permiso para acceder a tu cámara para escanear códigos de barras.",
+        [
+          { text: "OK", onPress: () => requestPermission() }
+        ]
+      );
+    }
+  }, [hasPermission, requestPermission]);
+
   if (!hasPermission) return <Text > No tienes permisos </Text>
   if (device == null) return <Text > No tienes permisos </Text>
   
   const codeScanner = useCodeScanner({
-    codeTypes: ['qr', 'ean-13'],
+    codeTypes: ['code-128'],
     onCodeScanned: (codes) => {
-      console.log(`Scanned ${codes[0].value} codes!`)
+      setCodigoDeBarras(codes[0].value);
     }
   })
 
@@ -31,7 +43,6 @@ export default function App() {
         isActive={true}     
         codeScanner={codeScanner} />
       <TextInput
-        //onChangeText={text => setCodigoDeBarras(text)}
         value={codigoDeBarras || ''}
       />
     </View>
